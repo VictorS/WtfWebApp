@@ -1,0 +1,35 @@
+﻿@model CommentsLoginViewModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="content-container" id="loginPage">
+    <div class="content" id="contact">
+        <form method="post">
+            @Html.ValidationSummary()
+            @Html.AntiForgeryToken()
+
+            @if (Model.UserToken == null)
+            {
+                <input type="hidden" name="mode" value="login"/>
+                <p><input type="submit" tabindex="1" value="Log in" /> with your <a href="https://@Config.NodeBB.Host">What The Daily WTF</a> forum account.</p>
+
+                <p id="alternate-login">or Log in with <a href="@Html.OAuth2Url(OAuth2.Google)">Google</a> or <a href="@Html.OAuth2Url(OAuth2.GitHub)">GitHub</a></p>
+            }
+            else
+            {
+                <p>Logged in as @Model.UserName (@Model.TokenType)</p>
+
+                <input type="hidden" name="mode" value="logout"/>
+                <p><input type="submit" tabindex="1" value="Log Out" /></p>
+
+                if (Model.UserToken.StartsWith("author:"))
+                {
+                <p id="alternate-login">This will only log you out of the comments.<br/>To log out of your author account, log out via the <a href="/admin">admin panel</a>.</p>
+                }
+            }
+        </form>
+    </div>
+</div>
+
+

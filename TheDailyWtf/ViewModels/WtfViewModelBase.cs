@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Web;
 using System.Web.Configuration;
-using TheDailyWtf.Discourse;
+using TheDailyWtf.Forum;
 using TheDailyWtf.Models;
 
 namespace TheDailyWtf.ViewModels
@@ -27,24 +28,39 @@ namespace TheDailyWtf.ViewModels
         public NavigationMenuViewModel NavigationMenu { get { return new NavigationMenuViewModel(); } }
         public string Copyright { get { return copyright; } }
         public string Version { get { return version; } }
+        public OpenGraphData OpenGraph { get; set; }
+        public bool IsWrongHost { get { return HttpContext.Current.Request.Url.Host != Config.Wtf.Host; } }
+        public string CurrentUrlWithCorrectHost { get { return $"https://{Config.Wtf.Host}{HttpContext.Current.Request.Url.PathAndQuery}"; } }
 
         public string SuccessMessage { get; set; }
         public string ErrorMessage { get; set; }
-        public string DiscourseMessage
+        public string ForumMessage
         {
             get
             {
-                var ex = DiscourseHelper.DiscourseException;
+                var ex = ForumHelper.LastException;
                 if (ex == null)
                     return null;
 
-                return "There was an issue connecting to the Discourse API: " + ex;
+                return "There was an issue connecting to the forum API: " + ex;
             }
         }
-        
+
         public Ad GetNextAd(Dimensions dimensions)
         {
             return AdRotator.GetNextAd(dimensions);
+        }
+
+        public class OpenGraphData
+        {
+            public string AuthorName { get; set; }
+            public string Title { get; set; }
+            public string Type { get; set; }
+            public string Url { get; set; }
+            public string Image { get; set; }
+            public string Description { get; set; }
+            public ArticleModel Article { get; set; }
+            public AuthorModel Author { get; set; }
         }
     }
 }

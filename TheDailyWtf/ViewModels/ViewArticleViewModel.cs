@@ -1,35 +1,54 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using TheDailyWtf.Common.HtmlCleaner;
 using TheDailyWtf.Models;
 
 namespace TheDailyWtf.ViewModels
 {
     public class ViewArticleViewModel : WtfViewModelBase
     {
+        private readonly Lazy<ViewCommentsViewModel> getFeaturedComments;
+
         public ViewArticleViewModel(string slug)
         {
             this.Slug = slug;
             this.Article = ArticleModel.GetArticleBySlug(slug);
+
+            this.getFeaturedComments = new Lazy<ViewCommentsViewModel>(() => new ViewCommentsViewModel(this.Article, this.Article.GetFeaturedComments()));
         }
 
         public ViewArticleViewModel(ArticleModel article)
         {
             this.Slug = article.Slug;
             this.Article = article;
+            ParseSummaryAndImage(article.SummaryHtml, out var description, out var image);
+            this.OpenGraph = new OpenGraphData
+            {
+                AuthorName = article.Author.Name,
+                Title = article.Title,
+                Url = article.Url,
+                Description = description,
+                Image = image ?? (new Uri(new Uri("https://" + Config.Wtf.Host), this.Article.Author.ImageUrl).AbsoluteUri),
+                Type = "article",
+                Article = article
+            };
+
+            this.getFeaturedComments = new Lazy<ViewCommentsViewModel>(() => new ViewCommentsViewModel(this.Article, this.Article.GetFeaturedComments()));
         }
 
-        public string Slug { get; private set; }
-        public ArticleModel Article { get; private set; }
-        public IEnumerable<CommentModel> FeaturedComments { get { return this.Article.GetFeaturedComments(); } }
-        public IEnumerable<ArticleModel> SimilarArticles { get { return this.RecentArticles; } }
-        public string ViewCommentsText
+        private static void ParseSummaryAndImage(string summaryHtml, out string description, out string image)
         {
-            get
-            {
-                if (this.Article.DiscourseTopicId == null)
-                    return string.Format("View All {0} Comments", this.Article.CachedCommentCount);
-                else
-                    return string.Format("Preview Top {0} Comments", this.Article.CachedCommentCount);
-            }
+            var node = Cleaner.Parse(summaryHtml);
+            description = HttpUtility.HtmlDecode(node.GetInnerText());
+            image = node.Descendants("img").FirstOrDefault()?.GetAttributeValue("src", null);
         }
+
+        public string Slug { get; }
+        public ArticleModel Article { get; }
+        public ViewCommentsViewModel FeaturedComments => this.getFeaturedComments.Value;
+        public IEnumerable<ArticleModel> SimilarArticles => this.RecentArticles;
+        public string ViewCommentsText => $"View All {this.Article.CachedCommentCount} Comments";
     }
 }

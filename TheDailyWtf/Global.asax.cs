@@ -5,6 +5,7 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Routing;
 using System.Web.Security;
+using Gibraltar.Agent.Web.Mvc.Filters;
 using Inedo.Diagnostics;
 using Newtonsoft.Json;
 using TheDailyWtf.Logs;
@@ -33,13 +34,34 @@ namespace TheDailyWtf
             {
                 Logger.AddMessenger(new FileSystemMessenger(Config.Wtf.Logs.BaseDirectory, Config.Wtf.Logs.MinimumLevel));
             }
-            
+
+            Inedo.Diagnostics.Loupe.Enable("TheDailyWtf", "WtfWebApp", typeof(MvcApplication).Assembly.GetName().Version);
+
+            GlobalFilters.Filters.Add(new MvcRequestMonitorAttribute());
+            GlobalFilters.Filters.Add(new UnhandledExceptionAttribute());
+
             AreaRegistration.RegisterAllAreas();
 
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             
             AdRotator.Initialize(Config.Wtf.AdsBaseDirectory);
+        }
+
+        protected void Application_Error(object sender, EventArgs e)
+        {
+            if (Request.Cookies.Get("IS_ADMIN") != null)
+            {
+                var err = Server.GetLastError();
+
+                Response.Clear();
+
+                Response.ContentType = "text/plain";
+                Response.Write("Because you are logged in to the admin panel, you are seeing this stack trace:\n\n");
+                Response.Write(err.ToString());
+
+                Server.ClearError();
+            }
         }
 
         private void SetCustomDateFormat()

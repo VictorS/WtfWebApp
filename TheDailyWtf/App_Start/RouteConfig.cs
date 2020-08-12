@@ -31,9 +31,87 @@ namespace TheDailyWtf
             );
 
             routes.MapRoute(
+                name: "ArticleListAdmin",
+                url: "admin/articles",
+                defaults: new { controller = "Admin", action = "ArticleList" }
+            );
+
+            routes.MapRoute(
+                name: "SeriesListAdmin",
+                url: "admin/series",
+                defaults: new { controller = "Admin", action = "SeriesList" }
+            );
+
+            routes.MapRoute(
+                name: "LoginListAdmin",
+                url: "admin/logins",
+                defaults: new { controller = "Admin", action = "LoginList" }
+            );
+
+            routes.MapRoute(
+                name: "FooterAdListAdmin",
+                url: "admin/footer-ads",
+                defaults: new { controller = "Admin", action = "FooterAdList" }
+            );
+
+            routes.MapRoute(
                 name: "ArticleAdmin",
                 url: "admin/article/edit/{id}",
-                defaults: new { controller = "Admin", action = "EditArticle", id = UrlParameter.Optional  }
+                defaults: new { controller = "Admin", action = "EditArticle", id = UrlParameter.Optional }
+            );
+
+            routes.MapRoute(
+                name: "CommentModerationAdmin",
+                url: "admin/comment-moderation/{page}",
+                defaults: new { controller = "Admin", action = "CommentModeration", page = 1 }
+            );
+
+            routes.MapRoute(
+                name: "ArticleCommentsAdmin",
+                url: "admin/article/comments/{id}/{page}",
+                defaults: new { controller = "Admin", action = "ArticleComments", page = 1 }
+            );
+
+            routes.MapRoute(
+                name: "UserIPCommentsAdmin",
+                url: "admin/user-comments/by-ip/{ip}/{page}",
+                defaults: new { controller = "Admin", action = "CommentsByIP", page = 1 }
+            );
+
+            routes.MapRoute(
+                name: "UserTokenCommentsAdmin",
+                url: "admin/user-comments/by-token/{token}/{page}",
+                defaults: new { controller = "Admin", action = "CommentsByToken", page = 1 }
+            );
+
+            routes.MapRoute(
+                name: "DeleteCommentsAdmin",
+                url: "admin/delete-comments",
+                defaults: new { controller = "Admin", action = "DeleteComments" }
+            );
+
+            routes.MapRoute(
+                name: "EditCommentAdmin",
+                url: "admin/edit-comment",
+                defaults: new { controller = "Admin", action = "EditComment" }
+            );
+
+            routes.MapRoute(
+                name: "ApproveComment",
+                url: "admin/approve-comment",
+                defaults: new { controller = "Admin", action = "ApproveComment" }
+            );
+
+            routes.MapRoute(
+                name: "FeatureComment",
+                url: "admin/feature-comment",
+                defaults: new { controller = "Admin", action = "FeatureComment" }
+            );
+
+            routes.MapRoute(
+                name: "UnfeatureComment",
+                url: "admin/unfeature-comment",
+                defaults: new { controller = "Admin", action = "UnfeatureComment" }
             );
 
             routes.MapRoute(
@@ -61,9 +139,15 @@ namespace TheDailyWtf
             );
 
             routes.MapRoute(
-                name: "ReenableDiscourse",
-                url: "admin/reenable-discourse",
-                defaults: new { controller = "Admin", action = "ReenableDiscourse" }
+                name: "ReassignAds",
+                url: "admin/ad/reassign",
+                defaults: new { controller = "Admin", action = "ReassignAds" }
+            );
+
+            routes.MapRoute(
+                name: "ReenableSideBar",
+                url: "admin/reenable-side-bar",
+                defaults: new { controller = "Admin", action = "ReenableSideBar" }
             );
 
             routes.MapRoute(
@@ -140,8 +224,44 @@ namespace TheDailyWtf
 
             routes.MapRoute(
                 name: "ViewArticleComments",
-                url: "articles/comments/{articleSlug}",
-                defaults: new { controller = "Articles", action = "ViewArticleComments" }
+                url: "articles/comments/{articleSlug}/{page}",
+                defaults: new { controller = "Articles", action = "ViewArticleComments", page = 1 }
+            );
+
+            routes.MapRoute(
+                name: "CommentsLogin",
+                url: "login",
+                defaults: new { controller = "Articles", action = "Login" }
+            );
+
+            routes.MapRoute(
+                name: "CommentsLoginNodeBB",
+                url: "login/nodebb",
+                defaults: new { controller = "Articles", action = "LoginNodeBB" }
+            );
+
+            routes.MapRoute(
+                name: "CommentsLoginGoogle",
+                url: "login/google",
+                defaults: new { controller = "Articles", action = "LoginGoogle" }
+            );
+
+            routes.MapRoute(
+                name: "CommentsLoginGitHub",
+                url: "login/github",
+                defaults: new { controller = "Articles", action = "LoginGitHub" }
+            );
+
+            routes.MapRoute(
+                name: "CommentsLoginFacebook",
+                url: "login/facebook",
+                defaults: new { controller = "Articles", action = "LoginFacebook" }
+            );
+
+            routes.MapRoute(
+                name: "CommentsAddendum",
+                url: "articles/comments/{articleSlug}/addendum/{id}",
+                defaults: new { controller = "Articles", action = "Addendum" }
             );
 
             routes.MapRoute(
@@ -178,6 +298,125 @@ namespace TheDailyWtf
                 name: "ViewAuthor",
                 url: "authors/{authorSlug}",
                 defaults: new { controller = "Authors", action = "ViewAuthor" }
+            );
+
+            routes.MapRoute(
+                name: "ViewAuthorByMonth",
+                url: "authors/{year}/{month}/{authorSlug}",
+                defaults: new { controller = "Authors", action = "ViewAuthorByMonth" }
+            );
+
+            // Legacy bonus page routes
+            // The I-Hate-Oracle Club GIFs
+
+            routes.MapRoute(
+                name: "LegacyIHateOracleClubGifs",
+                url: "images/ihoc/{imagename}.gif",
+                defaults: new { controller = "Info", action = "ViewIhocGif" }
+            );
+
+            routes.MapRoute(
+                name: "LegacyIHateOracleClubRotator",
+                url: "images/ihoc/random200x80.aspx",
+                defaults: new { controller = "Info", action = "ViewIhocRotator"}
+            );
+
+            routes.MapRoute(
+                name: "LegacyIHateOracleClub",
+                url: "images/ihoc/",
+                defaults: new { controller = "Info", action = "IHOC"}
+            );
+
+            // API Routes
+
+            routes.MapRoute(
+                name: "ApiDocumentation",
+                url: "api",
+                defaults: new { controller = "Api", action = "ViewApiDocumentation" }
+             );
+
+            routes.MapRoute(
+                name: "ApiViewArticleById",
+                url: "api/articles/id/{id}",
+                defaults: new { controller = "Api", action = "ViewArticleById" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewArticleByIdFilterBody",
+                url: "api/articles/id/{id}/{onlyBodyAndAdHtml}",
+                defaults: new { controller = "Api", action = "ViewArticleById" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewArticleByArticleSlug",
+                url: "api/articles/slug/{articleSlug}",
+                defaults: new { controller = "Api", action = "ViewArticleBySlug" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewArticleByArticleSlugFilterBody",
+                url: "api/articles/slug/{articleSlug}/{onlyBodyAndAdHtml}",
+                defaults: new { controller = "Api", action = "ViewArticleBySlug" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewRandomArticle",
+                url: "api/articles/random/",
+                defaults: new { controller = "Api", action = "ViewRandomArticle" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewRecentArticles",
+                url: "api/articles/recent/",
+                defaults: new { controller = "Api", action = "ViewRecentArticlesByCount" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewRecentArticlesByCount",
+                url: "api/articles/recent/{count}/",
+                defaults: new { controller = "Api", action = "ViewRecentArticlesByCount" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewArticlesByDate",
+                url: "api/articles/{year}/{month}/",
+                defaults: new { controller = "Api", action = "ViewArticlesByDate" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewArticlesBySeries",
+                url: "api/series/{slug}/",
+                defaults: new { controller = "Api", action = "ViewRecentArticlesBySeriesAndCount" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewArticlesBySeriesAndCount",
+                url: "api/series/{slug}/{count}",
+                defaults: new { controller = "Api", action = "ViewRecentArticlesBySeriesAndCount" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewArticlesBySeriesAndDate",
+                url: "api/series/{slug}/{year}/{month}/",
+                defaults: new { controller = "Api", action = "ViewArticlesBySeriesAndDate" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewSeries",
+                url: "api/series/",
+                defaults: new { controller = "Api", action = "ViewSeries" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewArticlesByAuthor",
+                url: "api/author/{slug}/",
+                defaults: new { controller = "Api", action = "ViewRecentArticlesByAuthorAndCount" }
+            );
+
+            routes.MapRoute(
+                name: "ApiViewArticlesByAuthorAndCount",
+                url: "api/author/{slug}/{count}/",
+                defaults: new { controller = "Api", action = "ViewRecentArticlesByAuthorAndCount" }
             );
 
             routes.MapRoute(
@@ -279,7 +518,7 @@ namespace TheDailyWtf
                 name: "LegacyForumPost12",
                 url: "forums/{postId}/PostAttachment.aspx",
                 constraints: new { postId = @"\d+" },
-                defaults: new { controller = "Articles", action = "ViewLegacyPost" }
+                defaults: new { controller = "Articles", action = "ViewLegacyAttachment" }
             );
         }
     }

@@ -8,12 +8,12 @@
     </ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{C7C16C09-33E6-4083-9FFD-8E014696591C}</ProjectGuid>
-    <ProjectTypeGuids>{E3E379DF-F4C6-4180-9B81-6769533ABE47};{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>TheDailyWtf</RootNamespace>
     <AssemblyName>TheDailyWtf</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <MvcBuildViews>true</MvcBuildViews>
     <UseIISExpress>true</UseIISExpress>
     <IISExpressSSLPort />
@@ -21,6 +21,16 @@
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <TargetFrameworkProfile />
+    <MvcProjectUpgradeChecked>true</MvcProjectUpgradeChecked>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>12.0</OldToolsVersion>
+    <UseGlobalApplicationHostFile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+    <Use64BitIISExpress />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,6 +41,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>7</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -42,47 +53,53 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ICSharpCode.SharpZipLib, Version=0.86.0.518, Culture=neutral, PublicKeyToken=1b03e6acf1164f73, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\ICSharpCode.SharpZipLib.dll</HintPath>
+    <Reference Include="CommonMark, Version=0.1.0.0, Culture=neutral, PublicKeyToken=001ef8810438905d, processorArchitecture=MSIL">
+      <HintPath>..\packages\CommonMark.NET.0.15.1\lib\net45\CommonMark.dll</HintPath>
     </Reference>
-    <Reference Include="InedoLib, Version=121.1.0.0, Culture=neutral, PublicKeyToken=112cfb71329714a6, processorArchitecture=MSIL">
+    <Reference Include="Gibraltar.Agent, Version=4.7.0.0, Culture=neutral, PublicKeyToken=ca42a1ee8d2e42d3, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gibraltar.Agent.4.7.10\lib\net40\Gibraltar.Agent.dll</HintPath>
+    </Reference>
+    <Reference Include="Gibraltar.Agent.Web.Mvc, Version=4.7.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Gibraltar.Agent.Web.Mvc.4.7.10.0\lib\net40\Gibraltar.Agent.Web.Mvc.dll</HintPath>
+    </Reference>
+    <Reference Include="InedoLib, Version=1000.0.0.0, Culture=neutral, PublicKeyToken=112cfb71329714a6, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\Lib\InedoLib.dll</HintPath>
     </Reference>
+    <Reference Include="InedoLibLoupe, Version=1000.0.0.0, Culture=neutral, PublicKeyToken=112cfb71329714a6, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\Lib\InedoLibLoupe.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\Microsoft.Web.Infrastructure.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Microsoft.Web.Infrastructure">
+      <HintPath>..\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
     </Reference>
-    <Reference Include="Newtonsoft.Json, Version=4.5.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\Newtonsoft.Json.dll</HintPath>
-    </Reference>
-    <Reference Include="Recaptcha.Web, Version=1.6.0.0, Culture=neutral, PublicKeyToken=ed5d2e6fb7aa7814, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\Recaptcha.Web.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Drawing" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Net.Http.WebRequest" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.ValueTuple.4.5.0\lib\netstandard1.0\System.ValueTuple.dll</HintPath>
+    </Reference>
     <Reference Include="System.Web" />
-    <Reference Include="System.Web.Helpers, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\System.Web.Helpers.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.Helpers.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Mvc, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\System.Web.Mvc.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.Mvc, Version=5.2.7.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Mvc.5.2.7\lib\net45\System.Web.Mvc.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\System.Web.Razor.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.Razor.3.2.7\lib\net45\System.Web.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.Web.Routing">
       <Private>True</Private>
@@ -91,20 +108,14 @@
     <Reference Include="System.Web.Services">
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Web.WebPages, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\System.Web.WebPages.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.WebPages, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.WebPages.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.WebPages.Deployment, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\System.Web.WebPages.Deployment.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.WebPages.Deployment, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
     </Reference>
-    <Reference Include="System.Web.WebPages.Razor, Version=2.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\Lib\System.Web.WebPages.Razor.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="System.Web.WebPages.Razor, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.7\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
     </Reference>
     <Reference Include="System.XML" />
     <Reference Include="System.Xml.Linq" />
@@ -112,30 +123,47 @@
   <ItemGroup>
     <Compile Include="Common\ActionResults\RssArticlesResult.cs" />
     <Compile Include="Common\Ads\AdRotator.cs" />
+    <Compile Include="Common\Asana\AsanaClient.cs" />
     <Compile Include="Common\BaseViewPage.cs" />
     <Compile Include="Common\CacheProfile.cs" />
-    <Compile Include="Common\Discourse\IDiscourseApi.cs" />
-    <Compile Include="Common\Discourse\MockDiscourseApi.cs" />
+    <Compile Include="Common\Forum\IForumApi.cs" />
+    <Compile Include="Common\Forum\MockForumApi.cs" />
+    <Compile Include="Common\Forum\NodeBBCustomAuth.cs" />
+    <Compile Include="Common\HtmlCleaner.cs" />
+    <Compile Include="Common\HtmlCleaner\Cleaner.cs" />
+    <Compile Include="Common\HtmlCleaner\Config.cs" />
+    <Compile Include="Common\Html\Atom\Atom.cs" />
+    <Compile Include="Common\Html\Atom\Table.cs" />
+    <Compile Include="Common\Html\Const.cs" />
+    <Compile Include="Common\Html\Doctype.cs" />
+    <Compile Include="Common\Html\Entity.cs" />
+    <Compile Include="Common\Html\Escape.cs" />
+    <Compile Include="Common\Html\Foreign.cs" />
+    <Compile Include="Common\Html\Node.cs" />
+    <Compile Include="Common\Html\Parse.cs" />
+    <Compile Include="Common\Html\Render.cs" />
+    <Compile Include="Common\Html\Token.cs" />
     <Compile Include="Common\Legacy\LegacyEncodedUrlPart.cs" />
     <Compile Include="Common\Logs\FileSystemMessenger.cs" />
+    <Compile Include="Common\OAuth2.cs" />
     <Compile Include="Common\WtfConfig.cs" />
     <Compile Include="Common\WtfControllerBase.cs" />
     <Compile Include="Common\Security\AdminOnlyActionFilterAttribute.cs" />
-    <Compile Include="Common\Discourse\Category.cs" />
-    <Compile Include="Common\Discourse\DiscourseApi.cs" />
-    <Compile Include="Common\Discourse\DiscourseHelper.cs" />
-    <Compile Include="Common\Discourse\Post.cs" />
-    <Compile Include="Common\Discourse\Topic.cs" />
+    <Compile Include="Common\Forum\Category.cs" />
+    <Compile Include="Common\Forum\ForumApi.cs" />
+    <Compile Include="Common\Forum\ForumHelper.cs" />
+    <Compile Include="Common\Forum\Topic.cs" />
     <Compile Include="Common\Security\AuthorPrincipal.cs" />
     <Compile Include="Controllers\AdsController.cs" />
     <Compile Include="Controllers\AdminController.cs" />
+    <Compile Include="Controllers\ApiController.cs" />
     <Compile Include="Controllers\ArticlesController.cs" />
     <Compile Include="Controllers\AuthorsController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\InfoController.cs" />
     <Compile Include="Common\Views.cs" />
+    <Compile Include="Data\DB.cs" />
     <Compile Include="Data\Domains.cs" />
-    <Compile Include="Data\StoredProcs.cs" />
     <Compile Include="Data\TableDefs.cs" />
     <Compile Include="Data\TableNames.cs" />
     <Compile Include="Data\Tables.cs" />
@@ -146,20 +174,29 @@
     <Compile Include="Models\AdvertiserContactFormModel.cs" />
     <Compile Include="Models\ArticleModel.cs" />
     <Compile Include="Models\AuthorModel.cs" />
+    <Compile Include="Models\CommentFormModel.cs" />
     <Compile Include="Models\CommentModel.cs" />
     <Compile Include="Models\ContactFormModel.cs" />
     <Compile Include="Models\SeriesModel.cs" />
     <Compile Include="Models\SubmitWtfModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ViewModels\AddendumViewModel.cs" />
     <Compile Include="ViewModels\AdminViewModel.cs" />
+    <Compile Include="ViewModels\Admin\ArticleCommentsViewModel.cs" />
+    <Compile Include="Models\DeleteCommentsModel.cs" />
     <Compile Include="ViewModels\Admin\EditArticleViewModel.cs" />
     <Compile Include="ViewModels\Admin\EditAuthorViewModel.cs" />
     <Compile Include="ViewModels\Admin\EditAdViewModel.cs" />
+    <Compile Include="ViewModels\Admin\EditCommentViewModel.cs" />
     <Compile Include="ViewModels\Admin\EditSeriesViewModel.cs" />
+    <Compile Include="ViewModels\Admin\FeatureCommentViewModel.cs" />
+    <Compile Include="ViewModels\Admin\HiddenCommentsViewModel.cs" />
     <Compile Include="ViewModels\Admin\MyArticlesViewModel.cs" />
+    <Compile Include="ViewModels\Admin\UserCommentsViewModel.cs" />
     <Compile Include="ViewModels\Admin\ViewAdsViewModel.cs" />
     <Compile Include="ViewModels\ArticleItemViewModel.cs" />
     <Compile Include="ViewModels\ArticlesIndexViewModel.cs" />
+    <Compile Include="ViewModels\CommentsLoginViewModel.cs" />
     <Compile Include="ViewModels\ContactFormViewModel.cs" />
     <Compile Include="ViewModels\HomeIndexViewModel.cs" />
     <Compile Include="ViewModels\NavigationMenuViewModel.cs" />
@@ -178,13 +215,28 @@
     <Content Include="404.aspx" />
     <Content Include="455.html" />
     <Content Include="455.aspx" />
+    <Content Include="Common\Html\README.txt" />
     <Content Include="Content\Css\animate.min.css" />
     <Content Include="Content\Css\bootstrap-datepicker.css" />
     <Content Include="Content\Css\gumby.css" />
     <Content Include="Content\Css\jquery.qtip.min.css" />
     <Content Include="Content\Css\jquery.timepicker.css" />
+    <Content Include="Content\Css\library.css" />
+    <Content Include="Content\Css\main.css" />
     <Content Include="Content\Css\prism.css" />
+    <Content Include="Content\Css\reset.css" />
     <Content Include="Content\Css\screen.css" />
+    <Content Include="Content\Fonts\BoldItalic\OpenSans-BoldItalic.svg" />
+    <Content Include="Content\Fonts\Bold\OpenSans-Bold.svg" />
+    <Content Include="Content\Fonts\ExtraBoldItalic\OpenSans-ExtraBoldItalic.svg" />
+    <Content Include="Content\Fonts\ExtraBold\OpenSans-ExtraBold.svg" />
+    <Content Include="Content\Fonts\Italic\OpenSans-Italic.svg" />
+    <Content Include="Content\Fonts\LightItalic\OpenSans-LightItalic.svg" />
+    <Content Include="Content\Fonts\Light\OpenSans-Light.svg" />
+    <Content Include="Content\Fonts\Regular\OpenSans-Regular.svg" />
+    <Content Include="Content\Fonts\SemiboldItalic\OpenSans-SemiboldItalic.svg" />
+    <Content Include="Content\Fonts\Semibold\OpenSans-Semibold.svg" />
+    <Content Include="Content\Images\about-icon.svg" />
     <Content Include="Content\Images\ad-load-error.png" />
     <Content Include="Content\Images\Authors\alex-papadimoulis.png" />
     <Content Include="Content\Images\Authors\brad-morgan.png" />
@@ -214,20 +266,55 @@
     <Content Include="Content\Images\banner300x75.png" />
     <Content Include="Content\Images\banner728.png" />
     <Content Include="Content\Images\banner970x90.jpg" />
+    <Content Include="Content\Images\chat.svg" />
+    <Content Include="Content\Images\circled-arrow.svg" />
+    <Content Include="Content\Images\comments-icon.svg" />
+    <Content Include="Content\Images\contents-icon.svg" />
+    <Content Include="Content\Images\email-24.png" />
+    <Content Include="Content\Images\facebook-24.png" />
+    <Content Include="Content\Images\forums-icon-black.png" />
+    <Content Include="Content\Images\forums-icon-black.svg" />
+    <Content Include="Content\Images\forums-icon-white.png" />
+    <Content Include="Content\Images\forums-icon-white.svg" />
     <Content Include="Content\Images\freeswag2.png" />
+    <Content Include="Content\Images\googleplus-24.png" />
     <Content Include="Content\Images\Icons\email-24.png" />
     <Content Include="Content\Images\Icons\facebook-24.png" />
     <Content Include="Content\Images\Icons\googleplus-24.png" />
     <Content Include="Content\Images\Icons\twitter-24.png" />
+    <Content Include="Content\Images\IHOC\Obsolete_L_R.gif" />
+    <Content Include="Content\Images\IHOC\Obsolete_L_W.gif" />
+    <Content Include="Content\Images\IHOC\Obsolete_punchcards.gif" />
+    <Content Include="Content\Images\IHOC\Obsolete_S_R.gif" />
+    <Content Include="Content\Images\IHOC\Obsolete_S_W.gif" />
+    <Content Include="Content\Images\IHOC\Obstacle_hlf_2x.gif" />
+    <Content Include="Content\Images\IHOC\Obstacle_L_R.gif" />
+    <Content Include="Content\Images\IHOC\Obstacle_L_W.gif" />
+    <Content Include="Content\Images\IHOC\Obstacle_S_R.gif" />
+    <Content Include="Content\Images\IHOC\Obstacle_S_W.gif" />
+    <Content Include="Content\Images\IHOC\Orable_BetterThanOrable.gif" />
+    <Content Include="Content\Images\IHOC\Orable_Ggggreat.gif" />
+    <Content Include="Content\Images\IHOC\Orable_L_R.gif" />
+    <Content Include="Content\Images\IHOC\Orable_L_W.gif" />
+    <Content Include="Content\Images\IHOC\Orable_S_R.gif" />
+    <Content Include="Content\Images\IHOC\Orable_S_W.gif" />
+    <Content Include="Content\Images\mobile-menu.svg" />
     <Content Include="Content\Images\placeholder.png" />
     <Content Include="Content\Images\social-icons.png" />
+    <Content Include="Content\Images\sound.svg" />
+    <Content Include="Content\Images\sponsors-icon.svg" />
+    <Content Include="Content\Images\Sponsors\atalasoft-50x50.png" />
+    <Content Include="Content\Images\Sponsors\atalasoft.png" />
     <Content Include="Content\Images\Sponsors\inedo.png" />
     <Content Include="Content\Images\Sponsors\infragistics.jpg" />
     <Content Include="Content\Images\Sponsors\puppetlabs.png" />
+    <Content Include="Content\Images\Sponsors\raygun.png" />
     <Content Include="Content\Images\Sponsors\scout 50x50.png" />
     <Content Include="Content\Images\Sponsors\scout_high_res.svg" />
     <Content Include="Content\Images\thedailywtfLogoNav.png" />
+    <Content Include="Content\Images\twitter-24.png" />
     <Content Include="Content\Images\wtf-logo.png" />
+    <Content Include="Content\Images\wtf-sidebar-icon.svg" />
     <Content Include="favicon.ico" />
     <Content Include="Global.asax" />
     <Content Include="robots.txt" />
@@ -297,9 +384,6 @@
     <Content Include="Views\Home\Search.cshtml" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Views\Admin\Index.cshtml" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="Views\Shared\_AdminLayout.cshtml" />
   </ItemGroup>
   <ItemGroup>
@@ -344,7 +428,122 @@
   <ItemGroup>
     <Content Include=".well-known\keybase.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Views\Admin\ArticleComments.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\PartialCommentsPages.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Shared\PartialRecaptcha.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Admin\EditComment.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Articles\Login.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Admin\CommentsByIP.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Admin\CommentsByToken.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Articles\Addendum.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Css\library.less" />
+    <Content Include="Content\Css\main.less" />
+    <Content Include="Content\Css\reset.less" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Fonts\Bold\OpenSans-Bold.eot" />
+    <Content Include="Content\Fonts\Bold\OpenSans-Bold.ttf" />
+    <Content Include="Content\Fonts\Bold\OpenSans-Bold.woff" />
+    <Content Include="Content\Fonts\Bold\OpenSans-Bold.woff2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Fonts\BoldItalic\OpenSans-BoldItalic.eot" />
+    <Content Include="Content\Fonts\BoldItalic\OpenSans-BoldItalic.ttf" />
+    <Content Include="Content\Fonts\BoldItalic\OpenSans-BoldItalic.woff" />
+    <Content Include="Content\Fonts\BoldItalic\OpenSans-BoldItalic.woff2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Fonts\ExtraBold\OpenSans-ExtraBold.eot" />
+    <Content Include="Content\Fonts\ExtraBold\OpenSans-ExtraBold.ttf" />
+    <Content Include="Content\Fonts\ExtraBold\OpenSans-ExtraBold.woff" />
+    <Content Include="Content\Fonts\ExtraBold\OpenSans-ExtraBold.woff2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Fonts\ExtraBoldItalic\OpenSans-ExtraBoldItalic.eot" />
+    <Content Include="Content\Fonts\ExtraBoldItalic\OpenSans-ExtraBoldItalic.ttf" />
+    <Content Include="Content\Fonts\ExtraBoldItalic\OpenSans-ExtraBoldItalic.woff" />
+    <Content Include="Content\Fonts\ExtraBoldItalic\OpenSans-ExtraBoldItalic.woff2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Fonts\Italic\OpenSans-Italic.eot" />
+    <Content Include="Content\Fonts\Italic\OpenSans-Italic.ttf" />
+    <Content Include="Content\Fonts\Italic\OpenSans-Italic.woff" />
+    <Content Include="Content\Fonts\Italic\OpenSans-Italic.woff2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Fonts\Light\OpenSans-Light.eot" />
+    <Content Include="Content\Fonts\Light\OpenSans-Light.ttf" />
+    <Content Include="Content\Fonts\Light\OpenSans-Light.woff" />
+    <Content Include="Content\Fonts\Light\OpenSans-Light.woff2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Fonts\LightItalic\OpenSans-LightItalic.eot" />
+    <Content Include="Content\Fonts\LightItalic\OpenSans-LightItalic.ttf" />
+    <Content Include="Content\Fonts\LightItalic\OpenSans-LightItalic.woff" />
+    <Content Include="Content\Fonts\LightItalic\OpenSans-LightItalic.woff2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Fonts\Regular\OpenSans-Regular.eot" />
+    <Content Include="Content\Fonts\Regular\OpenSans-Regular.ttf" />
+    <Content Include="Content\Fonts\Regular\OpenSans-Regular.woff" />
+    <Content Include="Content\Fonts\Regular\OpenSans-Regular.woff2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Fonts\Semibold\OpenSans-Semibold.eot" />
+    <Content Include="Content\Fonts\Semibold\OpenSans-Semibold.ttf" />
+    <Content Include="Content\Fonts\Semibold\OpenSans-Semibold.woff" />
+    <Content Include="Content\Fonts\Semibold\OpenSans-Semibold.woff2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Content\Fonts\SemiboldItalic\OpenSans-SemiboldItalic.eot" />
+    <Content Include="Content\Fonts\SemiboldItalic\OpenSans-SemiboldItalic.ttf" />
+    <Content Include="Content\Fonts\SemiboldItalic\OpenSans-SemiboldItalic.woff" />
+    <Content Include="Content\Fonts\SemiboldItalic\OpenSans-SemiboldItalic.woff2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Admin\ArticleList.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Admin\SeriesList.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Admin\LoginList.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Admin\FooterAdList.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Authors\ViewAuthorByMonth.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include=".well-known\acme-challenge\Web.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Info\IHOC.cshtml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Views\Admin\CommentModeration.cshtml" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

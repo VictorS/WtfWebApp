@@ -22,7 +22,7 @@ namespace TheDailyWtf
 
         public static void Initialize(string rootPath)
         {
-            Logger.Information("Initializing the AdRotator at path \"{0}\"...", rootPath);
+            Logger.Information($"Initializing the AdRotator at path \"{rootPath}\"...");
             try
             {
                 var dirInfo = new DirectoryInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, rootPath));
@@ -34,13 +34,6 @@ namespace TheDailyWtf
                     .ToList()
                     .AsReadOnly();
 
-                adsById = dimensionRoots
-                    .SelectMany(r => r.Companies)
-                    .SelectMany(c => c.Ads)
-                    .ToDictionary(a => a.UniqueId, StringComparer.OrdinalIgnoreCase);
-
-                adRedirects = new AdUrlRedirects(adsById.Values.Select(a => a.OriginalUrl));
-
                 Logger.Information("AdRotator initialized successfully.");
             }
             catch (Exception ex)
@@ -48,6 +41,13 @@ namespace TheDailyWtf
                 Logger.Error("There was an error loading the AdRotator: " + ex);
                 LoadException = ex;
             }
+
+            adsById = dimensionRoots
+                .SelectMany(r => r.Companies)
+                .SelectMany(c => c.Ads)
+                .ToDictionary(a => a.UniqueId, StringComparer.OrdinalIgnoreCase);
+
+            adRedirects = new AdUrlRedirects(adsById.Values.Select(a => a.OriginalUrl));
         }
 
         public static Ad GetNextAd(Dimensions dimensions)
@@ -101,7 +101,7 @@ namespace TheDailyWtf
         public static Dimensions? TryParse(string s)
         {
             var parts = s.Split(new[] { "x" }, 2, StringSplitOptions.RemoveEmptyEntries)
-                    .Select(p => InedoLib.Util.Int.ParseN(p))
+                    .Select(p => AH.ParseInt(p))
                     .ToArray();
             if (parts[0] == null || parts[1] == null)
                  return null;
@@ -240,7 +240,7 @@ namespace TheDailyWtf
     {
         private FileInfo file;
 
-        public static readonly Ad Error = new Ad { ImageUrl = "/content/images/ad-load-error.png" };
+        public static readonly Ad Error = new Ad { ImageUrl = "/content/images/ad-load-error.png", OriginalUrl = "" };
 
         private Ad() { }
 
@@ -309,19 +309,22 @@ namespace TheDailyWtf
     {
         public AdUrlRedirects(IEnumerable<string> originalAdUrls)
         {
-            foreach (string url in originalAdUrls)
-                StoredProcs.AdRedirectUrls_AddRedirectUrl(url).Execute();
+            using (var db = new DB.Context())
+            {
+                foreach (var url in originalAdUrls)
+                    db.AdRedirectUrls_AddRedirectUrl(url);
 
-            var urls = StoredProcs.AdRedirectUrls_GetRedirectUrls().Execute().ToList();
+                var urls = db.AdRedirectUrls_GetRedirectUrls().ToList();
 
-            this.OriginalUrlsByGuid = urls
-                .ToDictionary(r => r.Ad_Guid.ToString("N"), r => r.Redirect_Url, StringComparer.OrdinalIgnoreCase);
+                this.OriginalUrlsByGuid = urls
+                    .ToDictionary(r => r.Ad_Guid.ToString("N"), r => r.Redirect_Url, StringComparer.OrdinalIgnoreCase);
 
-            this.GuidsByOriginalUrl = urls
-                .ToDictionary(r => r.Redirect_Url, r => r.Ad_Guid.ToString("N"), StringComparer.OrdinalIgnoreCase);
+                this.GuidsByOriginalUrl = urls
+                    .ToDictionary(r => r.Redirect_Url, r => r.Ad_Guid.ToString("N"), StringComparer.OrdinalIgnoreCase);
+            }
         }
 
-        public Dictionary<string, string> OriginalUrlsByGuid { get; private set; }
-        public Dictionary<string, string> GuidsByOriginalUrl { get; private set; }
+        public Dictionary<string, string> OriginalUrlsByGuid { get; }
+        public Dictionary<string, string> GuidsByOriginalUrl { get; }
     }
 }

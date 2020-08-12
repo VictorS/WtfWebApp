@@ -28,7 +28,7 @@ div.nav-article a { display: block; }
 
 a.social-icon,
 a.social-icon:visited,
-a.social-icon:hover { width: 24px; height: 24px; display: inline-block; text-decoration: none; } 
+a.social-icon:hover { width: 24px; height: 24px; display: inline-block; text-decoration: none; }
 a.social-icon.facebook { background-image: url('/content/images/icons/facebook-24.png'); background-color: #3b5998; }
 a.social-icon.twitter { background-image: url('/content/images/icons/twitter-24.png'); background-color: #00aced; }
 a.social-icon.email { background-image: url('/content/images/icons/email-24.png'); background-color: #999; }
@@ -38,6 +38,7 @@ a.social-icon.google-plus { background-image: url('/content/images/icons/googlep
 .datepicker.dropdown-menu { z-index: 1000; }
 .field input.date,
 .field input.time { width: inherit; }
+.field textarea.resizeable { resize: vertical; transition: initial; }
 
 .search-container { position: absolute; right: -80px; width: 200px; }
 
@@ -63,7 +64,7 @@ table td span.admin-no { padding: 4px; background-color: #ce4d4d; }
 .four.columns aside div.about { padding: 10px; background-color: white; }
 .four.columns aside div.about p { font-size: 12px; }
 
-pre { font-family: Consolas, monospace; white-space:pre-wrap}
+pre, code { font-family: Consolas, monospace; white-space: pre-wrap; }
 
 div.previous-article { width: 45%; float: left; }
 div.next-article { width: 45%; float: right; text-align: right; }
@@ -89,15 +90,16 @@ div.message.success { color: #8AD46A; border-color: #8AD46A; }
 div.validation-summary-errors { color: #A00; border-color: #A00; }
 div.validation-summary-errors ul li { list-style-type: disc; margin-left: 15px; }
 
+.comment { clear: right; }
 .comment .timestamp { float: right; font-size: 75%; }
 .comment .avatar { width: 30px; height: 30px; vertical-align: bottom; margin: 3px; }
 .comment .emoji { width: 18px; height: 18px; }
 .comment blockquote { margin: 5px 0; padding: 5px; background-color: #EEE; }
 .comment blockquote p { margin: 0; padding: 5px; }
+.comment form { margin-bottom: 0; }
+.article-body .comment { border: none };
 
-.top-discourse-link { float: right; font-weight: normal !important; }
-.top-discourse-link:hover { text-decoration: underline; } 
-.discourse-link { float: right; color: #08c; background: #e0f5ff; padding: 8px 20px; margin-left: 10px; font-size: 16px; vertical-align: top; }
+.comments-link { float: right; color: #08c; background: #e0f5ff; padding: 8px 20px; margin-left: 10px; font-size: 16px; vertical-align: top; }
 
 .inset { float: right; margin: 8pt; width: 52%; }
 
@@ -112,3 +114,5 @@ div.validation-summary-errors ul li { list-style-type: disc; margin-left: 15px; 
     .no-print { display: none; }
 }
 
+.article-body table { border:1px solid black;border-collapse:collapse; }
+.article-body th, .article-body td { border:1px solid black; border-collapse:collapse; padding:0.5em;}

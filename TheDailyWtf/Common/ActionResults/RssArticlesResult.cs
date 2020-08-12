@@ -41,22 +41,23 @@ namespace TheDailyWtf
                         new XElement("title", "The Daily WTF"),
                         new XElement("link", "http://thedailywtf.com/"),
                         new XElement("description", "Curious Perversions in Information Technology"),
+                        new XElement("lastBuildDate", DateTime.UtcNow.ToString("r")),
                         this.articles.Select(a => new XElement("item",
-                            new XElement("author", a.Author.Name),
+                            new XElement(dc + "creator", a.Author.Name),
                             new XElement("title", a.RssTitle),
                             new XElement("link", a.Url),
                             new XElement("category", a.Series.Title),
                             new XElement("pubDate", a.PublishedDate.Value.ToUniversalTime().ToString("r")),
-                            new XElement("guid", a.Id),
+                            new XElement("guid", a.Url),
                             new XElement("description", a.BodyAndAdHtml),
-                            new XElement(slash + "comments", a.CoalescedCommentCount),
-                            new XElement("comments", a.CommentsUrl)
+                            new XElement(slash + "comments", a.CachedCommentCount),
+                            new XElement(wfw + "comment", a.CommentsUrl)
                         ))
                     )
                 )
             );
 
-            using (var writer = XmlWriter.Create(response.OutputStream, new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = false }))
+            using (var writer = XmlWriter.Create(response.OutputStream, new XmlWriterSettings { Encoding = Encoding.UTF8, Indent = false, CheckCharacters = false }))
             {
                 xdoc.WriteTo(writer);
             }

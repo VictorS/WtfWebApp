@@ -1,28 +1,113 @@
-﻿@model IEnumerable<CommentModel>
+﻿@model ViewCommentsViewModel
 
-<div class="commentsWrapper">
-   <ul class="comments">
-      @foreach (var comment in Model)
-      {
-         <li class="comment">
-            <div class="avatarContainer">
-               @if (!string.IsNullOrEmpty(comment.ImageUrl))
-               {
-                  <div class="imgContainer">
-                     <img src="@comment.ImageUrl" />
-                  </div>
-               }
+@if (Model.CanEditDelete)
+{
+    <form action="/admin/delete-comments" method="post" id="real-delete-comment-form">
+        @Html.AntiForgeryToken()
+        <input type="submit" value="Delete selected comments" />
+        @foreach (var comment in Model.Comments)
+        {
+            <input type="checkbox" name="delete" value="@comment.Id" class="hide" id="real-delete-@comment.Id" />
+        }
+    </form>
+}
+<ul class="comments">
+    @foreach (var comment in Model.Comments)
+    {
+        <li itemprop="comment" itemscope itemtype="http://schema.org/Comment" class="comment" id="comment-@comment.Id">
+            @if (comment.ProfileUrl != null) { <a href="@comment.ProfileUrl" class="poster" rel="author">@comment.Username</a> } else { <span class="poster">@comment.Username</span> } @if (comment.Anonymous) { <span class="poster-anon">(unregistered)</span> } else { <span class="poster-token poster-token-@comment.TokenType">(@comment.TokenType)</span> }
+            @if (Model.CanEditDelete)
+            {
+                <span class="poster-ip">IP: @if (comment.UserIP == null) { <code>unknown</code> } else { <a href="/admin/user-comments/by-ip/@Url.Encode(comment.UserIP)"><code>@comment.UserIP</code></a> }</span>
+                if (!comment.Anonymous)
+                {
+                    <span class="poster-token">Token: <a href="/admin/user-comments/by-token/@Url.Encode(comment.UserToken)"><code>@comment.UserToken</code></a></span>
+                }
+                if (Model.Article == null)
+                {
+                    <span class="comment-article">Article: <a href="/admin/article/comments/@comment.ArticleId/@((comment.Index - 1) / ViewCommentsViewModel.CommentsPerPage + 1)#comment-@comment.Id">@comment.ArticleTitle</a></span>
+                }
+            }
+            @if (comment.ParentCommentId != null)
+            {
+                <a href="@string.Format("{0}/{1}#comment-{2}", (Model.CanFeature || Model.CanEditDelete) ? "/admin/article/comments/" + comment.ArticleId : Model.BaseUrl, (comment.ParentCommentIndex - 1) / ViewCommentsViewModel.CommentsPerPage + 1, comment.ParentCommentId)" class="reply-to clean">in reply to @comment.ParentCommentUsername</a>
+            }
+            <span class="timestamp" itemprop="datePublished" content="@comment.PublishedDate.ToString("o")">
+                <a itemprop="url" href="#comment-@comment.Id">@comment.PublishedDate.ToString("yyyy-MM-dd")</a>
+                @if (!comment.Hidden && Model.CanFeature)
+                {
+                    <br />
+                    var action = comment.Featured ? "Unfeature" : "Feature";
+                    using (Html.BeginForm(action + "Comment", "Admin", FormMethod.Post))
+                    {
+                        @Html.Hidden("comment", comment.Id)
+                        @Html.Hidden("article", comment.ArticleId)
+                        @Html.AntiForgeryToken()
+                        <button>@action</button>
+                    }
+                }
+                @if (comment.Hidden && (Model.CanFeature || Model.CanEditDelete))
+                {
+                    using (Html.BeginForm("ApproveComment", "Admin", FormMethod.Post))
+                    {
+                        @Html.Hidden("comment", comment.Id)
+                        @Html.Hidden("article", comment.ArticleId)
+                        @Html.AntiForgeryToken()
+                        <button class="approve-comment-button">Approve</button>
+                    }
+                }
+                @if (Model.CanEditDelete)
+                {
+                    using (Html.BeginForm("EditComment", "Admin", FormMethod.Post))
+                    {
+                        @Html.Hidden("comment", comment.Id)
+                        @Html.Hidden("article", comment.ArticleId)
+                        @Html.AntiForgeryToken()
+                        <button>Edit</button>
+                    }
+                    <label for="delete-@comment.Id">Delete: <input type="checkbox" class="comment-delete" id="delete-@comment.Id" /></label>
+                }
+                @if (!comment.Hidden && Model.CanReply)
+                {
+                    <br />
+                    <a href="?parent=@comment.Id#comment-form" rel="nofollow" data-reply-to="@comment.Id" class="comment-reply-link">Reply</a>
+                    if (!comment.Anonymous && comment.PublishedDate.Add(TheDailyWtf.Controllers.ArticlesController.CommentEditTimeout) > DateTime.Now)
+                    {
+                        <a href="/articles/comments/@Model.Article.Slug/addendum/@comment.Id" rel="nofollow" data-user="@comment.Username" class="hide comment-edit-link">Edit</a>
+                    }
+                    <a href="/admin/article/comments/@Model.Article.Id/@((comment.Index - 1) / ViewCommentsViewModel.CommentsPerPage + 1)#comment-@comment.Id" rel="nofollow" class="hide admin-only">Admin</a>
+                }
+            </span>
+            <div itemprop="text">
+                @if (comment.Hidden)
+                {
+                    if (Model.CanFeature || Model.CanEditDelete)
+                    {
+                        <div class="comment-moderation">
+                            <em>Comment held for moderation.</em>
+                            <p>Links: <strong>@comment.Links.Count</strong></p>
+                            <ul>
+                                @foreach (var link in comment.Links)
+                                {
+                                    <li><a href="@link" rel="nofollow noreferrer">@link</a></li>
+                                }
+                            </ul>
+                        </div>
+                    }
+                    else
+                    {
+                        <em class="comment-moderation">Comment held for moderation.</em>
+                    }
+                }
+                @if (!comment.Hidden || Model.CanFeature || Model.CanEditDelete)
+                {
+                    @Html.Raw(comment.BodyHtml)
+                }
             </div>
-            <span class="poster">@comment.Username</span>
-            <span class="timestamp">@comment.PublishedDate</span>
-            <div>
-               @Html.Raw(comment.BodyHtml)
-            </div>
-         </li>
-      }
-      @if (!Model.Any())
-      {
-         <li>There are no comments yet.</li>
-      }
-   </ul>
-</div>
+        </li>
+    }
+    @if (Model.PageCount == 0)
+    {
+        <li>There are no comments yet.</li>
+    }
+</ul>

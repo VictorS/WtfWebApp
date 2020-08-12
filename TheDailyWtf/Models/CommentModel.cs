@@ -1,10 +1,9 @@
-﻿using System;
+﻿using CommonMark;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web;
 using TheDailyWtf.Data;
-using TheDailyWtf.Discourse;
 
 namespace TheDailyWtf.Models
 {
@@ -12,84 +11,133 @@ namespace TheDailyWtf.Models
     {
         private static readonly Regex ImgSrcRegex = new Regex(@"src=""(?<comment>[^""]+)""", RegexOptions.Compiled | RegexOptions.IgnoreCase | RegexOptions.ExplicitCapture);
 
+        private readonly Lazy<IList<string>> getLinks;
+
+        public CommentModel()
+        {
+            this.getLinks = new Lazy<IList<string>>(() => HtmlCleaner.GetLinkUrls(this.BodyHtml).ToList());
+        }
+
+        public int Id { get; set; }
+        public int Index { get; set; }
+        public int ArticleId { get; set; }
+        public string ArticleTitle { get; set; }
+        public string BodyRaw { get; set; }
         public string BodyHtml { get; set; }
         public string Username { get; set;}
         public DateTime PublishedDate { get; set; }
         public int? DiscoursePostId { get; set; }
-        public string ImageUrl { get; set; }
-
-        public static IEnumerable<CommentModel> GetFeaturedCommentsForArticle(ArticleModel article)
+        public bool Featured { get; set; }
+        public bool Anonymous { get { return UserToken == null; } }
+        public bool Hidden { get; set; }
+        public int? ParentCommentId { get; set; }
+        public int? ParentCommentIndex { get; set; }
+        public string ParentCommentUsername { get; set; }
+        [NonSerialized]
+        public string UserIP;
+        [NonSerialized]
+        public string UserToken;
+        public string TokenType => UserToken?.Split(':')[0];
+        public string ProfileUrl
         {
-            if (article.DiscourseTopicId != null)
+            get
             {
-                var comments = DiscourseHelper.GetFeaturedCommentsForArticle((int)article.Id);
-                return comments.Select(c => CommentModel.FromDiscourse(c));
-            }
+                if (UserToken == null)
+                {
+                    return null;
+                }
 
-            return new CommentModel[0];
-        }
-
-        public static IEnumerable<CommentModel> FromArticle(ArticleModel article)
-        {
-            var comments = StoredProcs.Comments_GetComments(article.Id).Execute();
-            return comments.Select(c => CommentModel.FromTable(c));
-        }
-
-        public static string TrySanitizeDiscourseBody(string body)
-        {
-            try
-            {
-                // image src attributes in Discourse comment bodies are relative,
-                // make them absolute to avoid image 404s on comments overview
-
-                string replaced = ImgSrcRegex.Replace(
-                    body,
-                    m =>
-                    {
-                        string value = m.Groups["comment"].Value;
-                        if (value.StartsWith("//"))
-                            return string.Format("src=\"{0}\"", value);
-
-                        return string.Format("src=\"//{0}{1}\"", Config.Discourse.Host, value);
-                    }
-                );
-
-                return replaced;
-            }
-            catch
-            {
-                return body;
+                var split = UserToken.Split(':');
+                return split[0] == "author" ? $"https://{Config.Wtf.Host}/authors/{split[1]}" :
+                    split[0] == "nodebb" ? $"https://{Config.NodeBB.Host}/user/{split[1]}" :
+                    split[0] == "disco" ? $"https://{Config.NodeBB.Host}/api/tdwtf-disco-user-redirect/{split[1]}" :
+                    split[0] == "cs" ? $"https://{Config.NodeBB.Host}/user/Profile.aspx?UserID={split[1]}" :
+                    null;
             }
         }
+        public IList<string> Links => this.getLinks.Value;
 
-        private static CommentModel FromTable(Tables.Comments comment)
+        public static IList<CommentModel> GetFeaturedCommentsForArticle(ArticleModel article)
+        {
+            var comments = DB.Articles_GetFeaturedComments(article.Id);
+            return comments.Select(c => FromTable(c)).ToList();
+        }
+
+        public static CommentModel GetCommentById(int id)
+        {
+            var comments = DB.Comments_GetCommentById(Comment_Id: id);
+            return comments.Select(c => FromTable(c)).FirstOrDefault();
+        }
+
+        public static IList<CommentModel> FromArticle(ArticleModel article, int? offset = null, int? limit = null)
+        {
+            var comments = DB.Comments_GetComments(Article_Id: article.Id, Skip_Count: offset, Limit_Count: limit);
+            return comments.Select(c => FromTable(c)).ToList();
+        }
+
+        public static IList<CommentModel> GetCommentsByIP(string ip, int? offset = null, int? limit = null)
+        {
+            var comments = DB.Comments_GetCommentsByIP(User_IP: ip, Skip_Count: offset, Limit_Count: limit);
+            return comments.Select(c => FromTable(c)).ToList();
+        }
+
+        public static IList<CommentModel> GetCommentsByToken(string token, int? offset = null, int? limit = null)
+        {
+            var comments = DB.Comments_GetCommentsByToken(User_Token: token, Skip_Count: offset, Limit_Count: limit);
+            return comments.Select(c => FromTable(c)).ToList();
+        }
+
+        public static IList<CommentModel> GetHiddenComments(string authorSlug = null, int? offset = null, int? limit = null)
+        {
+            var comments = DB.Comments_GetHiddenComments(Author_Slug: authorSlug, Skip_Count: offset, Limit_Count: limit);
+            return comments.Select(c => FromTable(c)).ToList();
+        }
+
+        public static int CountCommentsByIP(string ip)
+        {
+            return DB.Comments_CountCommentsByIP(User_IP: ip).Value;
+        }
+
+        public static int CountCommentsByToken(string token)
+        {
+            return DB.Comments_CountCommentsByToken(User_Token: token).Value;
+        }
+
+        public static int CountHiddenComments(string authorSlug = null)
+        {
+            return DB.Comments_CountHiddenComments(Author_Slug: authorSlug).Value;
+        }
+
+        private static CommentModel FromTable(Tables.Comments_Extended comment)
         {
             return new CommentModel()
             {
-                BodyHtml = comment.Discourse_Post_Id == null 
-                    ? BbCodeFormatComment(comment.Body_Html) 
-                    : comment.Body_Html,
+                Id = comment.Comment_Id,
+                ArticleId = comment.Article_Id,
+                ArticleTitle = comment.Article_Title,
+                BodyRaw = comment.Body_Html,
+                BodyHtml = MarkdownFormatContent(comment.Body_Html),
                 Username = comment.User_Name,
-                DiscoursePostId = comment.Discourse_Post_Id,
-                PublishedDate = comment.Posted_Date
+                PublishedDate = comment.Posted_Date,
+                Featured = comment.Featured_Indicator,
+                Hidden = comment.Hidden_Indicator,
+                ParentCommentId = comment.Parent_Comment_Id,
+                ParentCommentUsername = comment.Parent_Comment_User_Name,
+                UserIP = comment.User_IP,
+                UserToken = comment.User_Token,
+                Index = comment.Comment_Index,
+                ParentCommentIndex = comment.Parent_Comment_Index
             };
         }
 
-        private static CommentModel FromDiscourse(Post post)
+        private static string MarkdownFormatContent(string text)
         {
-            return new CommentModel()
-            {
-                BodyHtml = TrySanitizeDiscourseBody(post.BodyHtml),
-                Username = post.Username,
-                PublishedDate = post.PostDate,
-                DiscoursePostId = post.Id,
-                ImageUrl = post.ImageUrl
-            };
+            return HtmlCleaner.Clean(CommonMarkConverter.Convert(BbCodeFormatComment(text)));
         }
 
         private static string BbCodeFormatComment(string text)
         {
-            string encodedString = HttpUtility.HtmlEncode(text);
+            string encodedString = text;
 
             // Bold, Italic, Underline
             encodedString = Regexes.Bold.Replace(encodedString, "<b>$1</b>");
@@ -125,8 +173,6 @@ namespace TheDailyWtf.Models
             // Color
             encodedString = Regexes.Color.Replace(encodedString, "<span style=\"color:$1;\">$3</span>");
 
-            encodedString = encodedString.Replace("\n", "<br />");
-
             return encodedString;
         }
 
@@ -148,7 +194,7 @@ namespace TheDailyWtf.Models
             public static readonly Regex Img2 = new Regex(@"\[img=((.|\n)*?)x((.|\n)*?)(?:\s*)\]((.|\n)*?)\[/img(?:\s*)\]", Regexes.Options);
             public static readonly Regex Color = new Regex(@"\[color=((.|\n)*?)(?:\s*)\]((.|\n)*?)\[/color(?:\s*)\]", Regexes.Options);
 
-            public static readonly Regex QuoteStartBbCode = new Regex("\\[quote(?:\\s*)user=(?:\"|&quot;|&#34;)(.*?)(?:\"|&quot;|&#34;)\\]", Regexes.Options);
+            public static readonly Regex QuoteStartBbCode = new Regex("\\[quote(?:\\s*)(?:user)?=(?:\"|&quot;|&#34;)(.*?)(?:,.*?)?(?:\"|&quot;|&#34;)\\]", Regexes.Options);
             public static readonly Regex QuoteEndBbCode = new Regex("\\[/quote(\\s*)\\]", Regexes.Options);
 
             public static readonly Regex EmptyQuoteStartBbCode = new Regex("\\[quote(\\s*)\\]", Regexes.Options);

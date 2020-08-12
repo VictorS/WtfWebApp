@@ -24,3 +24,61 @@ function getCookie(cname) {
     }
     return "";
 }
+
+$(document).ready(function () {
+    if ($("#comment-form").length) {
+        if (getCookie("tdwtf_token_name") === "") {
+            if ("tdwtf_anon_name" in localStorage) {
+                $("#comment-name").val(localStorage["tdwtf_anon_name"]);
+            }
+            $("#comment-form").submit(function () {
+                if (!$("#g-recaptcha-response").val()) {
+                    $(".field.g-recaptcha").addClass("error message");
+                    return false;
+                }
+                localStorage["tdwtf_anon_name"] = $("#comment-name").val();
+            });
+        } else {
+            // logged-in users don't need to solve the captcha.
+            var name = getCookie("tdwtf_token_name");
+            $("#log-out-button").show();
+            $("#comment-name").val(name).attr("disabled", "");
+            $(".field.g-recaptcha").hide();
+            $(".comment-anonymous-only").hide();
+            $(".comment-edit-link").filter(function () {
+                if ($(this).attr("data-user") == name) {
+                    $(this).removeClass("hide");
+                }
+            });
+        }
+        $(".comment-reply-link").click(function () {
+            var id = $(this).attr("data-reply-to");
+            $("#comment-parent").val(id);
+            $("#comment-parent-text").show();
+            $("#comment-parent-display").text(id).attr("href", "#comment-" + id);
+            $("html,body").animate({ scrollTop: $("#comment-form").offset().top });
+            return false;
+        });
+    }
+
+    var lastCommentDelete = null;
+    $(".comment-delete").click(function (e) {
+        var currentComment = this;
+        if (e.shiftKey && lastCommentDelete) {
+            var seen = 0;
+            $(".comment-delete").each(function () {
+                if (this == currentComment || this == lastCommentDelete) {
+                    seen++;
+                } else if (seen == 1) {
+                    this.checked = !this.checked;
+                }
+            });
+        }
+        lastCommentDelete = currentComment;
+    });
+    $("#real-delete-comment-form").submit(function () {
+        $(".comment-delete").each(function () {
+            $("#real-" + this.id).prop("checked", this.checked);
+        });
+    });
+});

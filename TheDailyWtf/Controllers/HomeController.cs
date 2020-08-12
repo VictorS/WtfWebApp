@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Mail;
+using System.Threading.Tasks;
 using System.Web;
 using System.Web.Mvc;
 using Inedo;
-using Recaptcha.Web;
-using Recaptcha.Web.Mvc;
+using TheDailyWtf.Common.Asana;
 using TheDailyWtf.Models;
 using TheDailyWtf.ViewModels;
 
@@ -22,6 +26,8 @@ namespace TheDailyWtf.Controllers
             return View(new HomeIndexViewModel());
         }
 
+        // TODO: this is just the front page
+        [OutputCache(CacheProfile = CacheProfile.Timed5Minutes)]
         public ActionResult Search()
         {
             return View(new HomeIndexViewModel());
@@ -46,36 +52,36 @@ namespace TheDailyWtf.Controllers
             return new RssArticlesResult(ArticleModel.GetRecentArticles(15));
         }
 
+        private async Task SendMailAsync(MailMessage message)
+        {
+            using (var smtp = new SmtpClient(Config.Wtf.Mail.Host, Config.Wtf.Mail.Port)
+            {
+                EnableSsl = true,
+                Credentials = new NetworkCredential(Config.Wtf.Mail.Username, Config.Wtf.Mail.Password)
+            })
+            {
+                await smtp.SendMailAsync(message);
+            }
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Contact(ContactFormViewModel model)
+        public async Task<ActionResult> Contact(ContactFormViewModel model)
         {
+            if (this.ModelState.IsValid)
+                await this.CheckRecaptchaAsync();
+
             if (!this.ModelState.IsValid)
                 return View(model);
 
-            var recaptchaHelper = this.GetRecaptchaVerificationHelper();
-
-            if (string.IsNullOrEmpty(recaptchaHelper.Response))
-            {
-                this.ModelState.AddModelError(string.Empty, "Captcha answer cannot be empty.");
-                return View(model);
-            }
-
-            var recaptchaResult = recaptchaHelper.VerifyRecaptchaResponse();
-            if (recaptchaResult != RecaptchaVerificationResult.Success)
-            {
-                this.ModelState.AddModelError(string.Empty, "Invalid recaptcha response: " + recaptchaResult);
-                return View(model);
-            }
-
             try
             {
-                using(var writer = new StringWriter())
-                using (var smtp = new SmtpClient(Config.Wtf.Mail.Host))
-                using (var message = new MailMessage(InedoLib.Util.CoalesceStr(model.ContactForm.Email, Config.Wtf.Mail.FromAddress), Config.Wtf.Mail.ToAddress))
+                using (var writer = new StringWriter())
+                using (var message = new MailMessage(new MailAddress(Config.Wtf.Mail.FromAddress, model.ContactForm.Name), new MailAddress(Config.Wtf.Mail.ToAddress)))
                 {
-                    string customToAddress;
-                    if (Config.Wtf.Mail.CustomEmailAddresses.TryGetValue(model.ContactForm.To, out customToAddress))
+                    message.ReplyToList.Add(model.ContactForm.Email);
+
+                    if (Config.Wtf.Mail.CustomEmailAddresses.TryGetValue(model.ContactForm.To, out var customToAddress))
                     {
                         message.To.Clear();
                         message.To.Add(customToAddress);
@@ -83,6 +89,7 @@ namespace TheDailyWtf.Controllers
 
                     writer.WriteLine("To: {0}", model.ContactForm.To);
                     writer.WriteLine("Your Name: {0}", model.ContactForm.Name);
+                    writer.WriteLine("From: {0}", model.ContactForm.Email);
                     writer.WriteLine();
                     writer.WriteLine("Message:");
                     writer.WriteLine("--------------------------------");
@@ -92,7 +99,7 @@ namespace TheDailyWtf.Controllers
                     message.Body = writer.ToString();
                     AttachFile(message, model.ContactForm.File);
 
-                    smtp.Send(message);
+                    await this.SendMailAsync(message);
                 }
 
                 return View(new ContactFormViewModel { SuccessMessage = "Your feedback has been submitted, thank you!" });
@@ -116,61 +123,59 @@ namespace TheDailyWtf.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Submit(SubmitWtfViewModel model)
+        public async Task<ActionResult> Submit(SubmitWtfViewModel model)
         {
+            if (this.ModelState.IsValid)
+                await this.CheckRecaptchaAsync();
+
             if (!this.ModelState.IsValid)
                 return View(model);
 
-            var recaptchaHelper = this.GetRecaptchaVerificationHelper();
-
-            if (string.IsNullOrEmpty(recaptchaHelper.Response))
-            {
-                this.ModelState.AddModelError(string.Empty, "Captcha answer cannot be empty.");
-                return View(model);
-            }
-
-            var recaptchaResult = recaptchaHelper.VerifyRecaptchaResponse();
-            if (recaptchaResult != RecaptchaVerificationResult.Success)
-            {
-                this.ModelState.AddModelError(string.Empty, "Invalid recaptcha response: " + recaptchaResult);
-                return View(model);
-            }
-
             try
             {
-                using(var writer = new StringWriter())
-                using (var smtp = new SmtpClient(Config.Wtf.Mail.Host))
-                using (var message = new MailMessage(InedoLib.Util.CoalesceStr(model.SubmitForm.Email, Config.Wtf.Mail.FromAddress), Config.Wtf.Mail.ToAddress))
+                using (var writer = new StringWriter())
+                using (var message = new MailMessage(new MailAddress(Config.Wtf.Mail.FromAddress, model.SubmitForm.Name), new MailAddress(Config.Wtf.Mail.ToAddress)))
                 {
-                    WriteCommonBody(writer, model.SubmitForm.Name, model.SubmitForm.NameUsage);
+                    message.ReplyToList.Add(model.SubmitForm.Email);
 
+                    WriteCommonBody(writer, model.SubmitForm.Name, model.SubmitForm.NameUsage, model.SubmitForm.Email);
+
+                    long tag;
+                    string title;
+                    var attachments = new KeyValuePair<string, HttpContent>[0];
                     switch (model.SubmitForm.Type)
                     {
                         case SubmissionType.CodeSod:
-                            message.Subject = "[Code]";
+                            tag = AsanaClient.CodeSodTagId;
+                            title = "[CodeSOD] ";
                             WriteCodeSodBody(writer, model.SubmitForm.Language, model.SubmitForm.CodeSnippet, model.SubmitForm.Background);
-                            AttachFile(message, model.SubmitForm.CodeFile);
+                            attachments = AttachFile(message, model.SubmitForm.CodeFile, true);
                             break;
 
                         case SubmissionType.Story:
-                            message.Subject = "[Story]";
+                            tag = AsanaClient.StoryTagId;
+                            title = "[Story] ";
                             WriteStoryBody(writer, model.SubmitForm.StoryComments);
                             break;
 
                         case SubmissionType.Errord:
-                            message.Subject = "[Error'd]";
+                            tag = AsanaClient.ErrordTagId;
+                            title = "[Error'd] ";
                             WriteErrordBody(writer, model.SubmitForm.ErrordComments);
-                            AttachFile(message, model.SubmitForm.ErrordFile);
+                            attachments = AttachFile(message, model.SubmitForm.ErrordFile, true);
                             break;
 
                         default:
                             throw new InvalidOperationException("Invalid submission type");
                     }
 
-                    message.Subject = message.Subject + " " + model.SubmitForm.Title;
+                    title += model.SubmitForm.Title;
+                    message.Subject = title;
                     message.Body = writer.ToString();
 
-                    smtp.Send(message);
+                    _ = AsanaClient.Instance.CreateTaskAsync(tag, title, writer.ToString(), attachments);
+
+                    await this.SendMailAsync(message);
                 }
 
                 return View(new SubmitWtfViewModel { ShowLeaderboardAd = false, SuccessMessage = "Your submission was sent, thank you!" });
@@ -182,15 +187,35 @@ namespace TheDailyWtf.Controllers
             }
         }
 
-        private void AttachFile(MailMessage message, HttpPostedFileBase file)
+        private KeyValuePair<string, HttpContent>[] AttachFile(MailMessage message, HttpPostedFileBase file, bool returnContent = false)
         {
             if (file == null || file.ContentLength < 1)
-                return;
+                return new KeyValuePair<string, HttpContent>[0];
 
-            message.Attachments.Add(new Attachment(file.InputStream, file.FileName));
+            var memory = new MemoryStream();
+            file.InputStream.CopyTo(memory);
+            memory.Position = 0;
+
+            message.Attachments.Add(new Attachment(memory, file.FileName, file.ContentType));
+            if (!returnContent)
+            {
+                return new KeyValuePair<string, HttpContent>[0];
+            }
+
+            return new[]
+            {
+                new KeyValuePair<string, HttpContent>(file.FileName, new ByteArrayContent(memory.ToArray())
+                {
+                    Headers =
+                    {
+                        ContentLength = file.ContentLength,
+                        ContentType = MediaTypeHeaderValue.Parse(file.ContentType)
+                    }
+                })
+            };
         }
 
-        private void WriteCommonBody(TextWriter writer, string submitterName, NameUsage nameUsage)
+        private void WriteCommonBody(TextWriter writer, string submitterName, NameUsage nameUsage, string email)
         {
             writer.WriteLine("Your Name: {0}", submitterName);
             writer.WriteLine(
@@ -200,6 +225,7 @@ namespace TheDailyWtf.Controllers
                 nameUsage == NameUsage.FirstNameOnly ? "First Name Only" :
                 "ANONYMOUS"
             );
+            writer.WriteLine("Email (do not publish): {0}", email);
         }
 
         private void WriteCodeSodBody(TextWriter writer, string language, string codeSnippet, string background)

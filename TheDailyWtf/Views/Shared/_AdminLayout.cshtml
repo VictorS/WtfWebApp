@@ -14,6 +14,7 @@
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+    <link rel="stylesheet" href="/content/css/main.css" />
     <link rel="stylesheet" href="/content/css/gumby.css" />
     <link rel="stylesheet" href="/content/css/animate.min.css" />
     <link rel="stylesheet" href="/content/css/screen.css" />
@@ -39,18 +40,83 @@
 <body class="noise">
 
     <div id="wrapper">
-        <div class="row">
-            <a href="/admin" style="text-decoration: none;"><img style="vertical-align: text-bottom;" src="/content/images/thedailywtfLogoNav.png" class="logo" /> Administration </a>
-            @if (User != null)
-            {               
-                <div class="twelve columns" style="text-align: right;">
-                    Logged in as @User.DisplayName : <a href="/admin/logout">Logout</a>
+        <div class="content-container">
+            <div class="content">
+
+
+                <div>
+                    @if (User != null && User.IsAdmin)
+                    {
+                        <div class="navbar">
+                            <ul>
+                                <li><a href="/admin/articles">Articles</a></li>
+                                <li><a href="/admin/series">Series</a></li>
+                                <li><a href="/admin/logins">Authors &amp; Logins</a></li>
+                                <li><a href="/admin/footer-ads">Footer Ads</a></li>
+                                <li><a href="/admin/ads">Ads</a></li>
+                                <li>
+                                    @{
+                                        int count = CommentModel.CountHiddenComments();
+                                        if (count > 0)
+                                        {
+                                            <a href="/admin/comment-moderation">Comments<span class="bubble">@count</span></a>
+                                        }
+                                        else
+                                        {
+                                            <a href="/admin/comment-moderation">Comments</a>
+                                        }
+                                    }
+                                </li>
+                            </ul>
+                        </div>
+                    }
+                    @if (User != null && !User.IsAdmin)
+                    {
+                        <div class="navbar">
+                            <ul>
+                                <li><a href="/admin/my-articles">My Articles</a></li>
+                                <li>
+                                    @{
+                                        int count = CommentModel.CountHiddenComments(User.Identity.Name);
+                                        if (count > 0)
+                                        {
+                                            <a href="/admin/comment-moderation">Comments<span class="bubble">@count</span></a>
+                                        }
+                                        else
+                                        {
+                                            <a href="/admin/comment-moderation">Comments</a>
+                                        }
+                                    }
+                                </li>
+                            </ul>
+                        </div>
+                    }
+
+                    <a href="/admin" style="text-decoration: none;"><img style="vertical-align: text-bottom;" src="/content/images/thedailywtfLogoNav.png" class="logo" /> Administration </a>
+                    @if (User != null)
+                    {
+                        <div style="text-align: right;">
+                            Logged in as @User.DisplayName : <a href="/admin/logout">Logout</a>
+                        </div>
+                    }
                 </div>
-            }
-        </div>
-        <div class="row">
-            <div class="twelve columns">
-                @RenderBody()
+                <div>
+                    <div>
+                        @if (Model != null && Model.SuccessMessage != null)
+                        {
+                            <div class="message success">
+                                @Model.SuccessMessage
+                            </div>
+                        }
+                        @if (Model != null && Model.ErrorMessage != null)
+                        {
+                            <div class="message error">
+                                @Model.ErrorMessage
+                            </div>
+                        }
+                        @RenderBody()
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -59,22 +125,21 @@
     <script src="//ajax.googleapis.com/ajax/libs/chrome-frame/1.0.3/CFInstall.min.js"></script>
     <script>window.attachEvent('onload',function(){CFInstall.check({mode:'overlay'})})</script>
     <![endif]-->
+    @if (Model != null && Model.ForumMessage != null)
+    {
+        <div class="message error">
 
-   @if (Model != null && Model.DiscourseMessage != null)
-   {
-      <div class="message error">
+            @if (this.User != null && this.User.IsAdmin)
+            {
+                <div>
+                    [<a href="/admin/reenable-side-bar">Clear Cached Error and Re-enable Forum Connections</a>]
+                </div>
+            }
 
-         @if (this.User != null && this.User.IsAdmin)
-         {
-            <div>
-               [<a href="/admin/reenable-discourse">Clear Cached Error and Re-enable Discourse Connections</a>]
-            </div>
-         }
+            @Model.ForumMessage
 
-         @Model.DiscourseMessage
-
-      </div>
-   }
+        </div>
+    }
 </body>
 </html>
 

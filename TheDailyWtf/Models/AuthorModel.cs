@@ -55,13 +55,17 @@ namespace TheDailyWtf.Models
 
         public static AuthorModel GetAuthorBySlug(string slug)
         {
-            var author = StoredProcs.Authors_GetAuthorBySlug(slug).Execute();
+            var author = DB.Authors_GetAuthorBySlug(slug);
+            if (author == null)
+            {
+                return null;
+            }
             return AuthorModel.FromTable(author);
         }
 
         public static IEnumerable<AuthorModel> GetAllAuthors()
         {
-            var authors = StoredProcs.Authors_GetAuthors().Execute();
+            var authors = DB.Authors_GetAuthors();
             return authors.Select(a => AuthorModel.FromTable(a));
         }
 

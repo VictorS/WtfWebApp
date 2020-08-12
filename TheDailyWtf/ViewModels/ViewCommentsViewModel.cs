@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using TheDailyWtf.Models;
 
@@ -7,40 +6,67 @@ namespace TheDailyWtf.ViewModels
 {
     public class ViewCommentsViewModel : WtfViewModelBase
     {
-        public ViewCommentsViewModel(ArticleModel article)
+        public const int CommentsPerPage = 50;
+        public const int NearbyPages = 3;
+
+        public ViewCommentsViewModel(ArticleModel article, int page)
         {
             this.Article = article;
-            this.Comments = CommentModel.FromArticle(article);
-            if (this.Article.CachedCommentCount > 1)
-                this.DiscourseNextUnreadCommentUrl = this.Article.DiscourseThreadUrl + "/" + this.Article.CachedCommentCount;
-            else
-                this.DiscourseNextUnreadCommentUrl = this.Article.DiscourseThreadUrl;
+            this.TotalComments = article.CachedCommentCount;
+            this.Comments = CommentModel.FromArticle(article, (page - 1) * CommentsPerPage, CommentsPerPage);
+            this.PageNumber = page;
+
+            this.Comment = new CommentFormModel();
         }
 
-        public ArticleModel Article { get; private set; }
-        public IEnumerable<CommentModel> Comments { get; private set; }
-        public int MaxDiscoursePostId { get; private set; }
-        public string DiscourseNextUnreadCommentUrl { get; private set; }
-        public string ViewCommentsHeading 
-        { 
-            get 
+        public ViewCommentsViewModel(ArticleModel article, IList<CommentModel> comments)
+        {
+            this.Article = article;
+            this.TotalComments = article.CachedCommentCount;
+            this.Comments = comments;
+            this.PageNumber = -1;
+        }
+
+        public ViewCommentsViewModel(IList<CommentModel> comments, int page, int totalComments)
+        {
+            this.Article = null;
+            this.TotalComments = totalComments;
+            this.Comments = comments;
+            this.PageNumber = page;
+        }
+
+        public virtual string BaseUrl { get { return Article.CommentsUrl; } }
+        public virtual bool CanFeature { get { return false; } }
+        public virtual bool CanEditDelete { get { return false; } }
+        public virtual bool CanReply { get { return this.PageNumber != -1; } }
+        public ArticleModel Article { get; }
+        public int TotalComments { get; }
+        public IList<CommentModel> Comments { get; }
+        public int PageNumber { get; }
+        public int PageCount
+        {
+            get
             {
-                return string.Format(
-                    "Article Comments ({0} {1} comments)", 
-                    this.Article.CachedCommentCount < this.Article.DiscourseCommentCount ? "Previewing first" : "Viewing", 
-                    this.CommentsFraction
-                ); 
-            } 
+                return (this.TotalComments + CommentsPerPage - 1) / CommentsPerPage;
+            }
+        }
+        public string ViewCommentsHeading
+        {
+            get
+            {
+                return string.Format("(Viewing {0} comments)", this.CommentsFraction);
+            }
         }
         public string CommentsFraction
         {
             get
             {
-                if (this.Article.CachedCommentCount < this.Article.DiscourseCommentCount)
-                    return string.Format("{0} of {1}", this.Article.CachedCommentCount, Math.Max(this.Article.DiscourseCommentCount, this.Article.CachedCommentCount));
+                if (this.Comments.Count() < this.TotalComments)
+                    return string.Format("{0} of {1}", this.Comments.Count, this.TotalComments);
                 else
-                    return this.Article.CachedCommentCount.ToString();
+                    return this.TotalComments.ToString();
             }
         }
+        public CommentFormModel Comment { get; set; }
     }
 }

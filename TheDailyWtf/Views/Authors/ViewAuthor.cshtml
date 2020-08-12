@@ -4,26 +4,33 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="row author">
-    <div class="three columns animated fadeInDown">
-        <div class="row authorPic">
-            <img src="@Model.Author.ImageUrl">
+<div class="content" id="listing">
+   
+    <div class="author-box">
+        <div class="author-image-container">
+        <img src="@Model.Author.ImageUrl" />
+            </div>
+        <div class="author-details">
+            <h1 class="title">@Model.Author.Name</h1>
+
+            <div class="credentials">@Html.Raw(Model.Author.DescriptionHtml)</div>
         </div>
     </div>
-    <div class="nine columns animated fadeInDown">
-        <h2 class="authorName">@Model.Author.Name</h2>
-        <hr />
-        <div class="author-description">
-            @Html.Raw(Model.Author.DescriptionHtml)
-        </div>
-    </div>
-    <div class="clearfix"></div>
-    <hr />
-    <div class="authorListHeader row">
-        <h4>Recent Articles by <strong>@Model.Author.FirstName</strong>:</h4>
+
+    <div id="article-feed">
+      
         @foreach (var article in Model.Articles)
         {
             @Html.Partial(Views.Shared.PartialArticleItem, article)
+        }
+
+        @if (Model.Articles.Any())
+        {
+            <p><a href="@Model.ArchivesUrl" class="archives-link">Archives</a></p>
+        }
+        else
+        {
+            <p>There are no articles to display.</p>
         }
     </div>
 </div>

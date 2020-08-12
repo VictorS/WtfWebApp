@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 using TheDailyWtf.Data;
-using TheDailyWtf.Discourse;
+using TheDailyWtf.Forum;
 
 namespace TheDailyWtf.Models
 {
@@ -38,10 +38,8 @@ namespace TheDailyWtf.Models
                 else
                     return string.Format("{0}: {1}", this.Series.Title, this.Title);
             }
-        }        
-        public int DiscourseCommentCount { get; set; }
+        }
         public int CachedCommentCount { get; set; }
-        public int CoalescedCommentCount { get { return Math.Max(this.DiscourseCommentCount, this.CachedCommentCount); } }
         public DateTime? LastCommentDate { get; set; }
         public string LastCommentDateDescription 
         { 
@@ -56,19 +54,18 @@ namespace TheDailyWtf.Models
         }
         public int? DiscourseTopicId { get; set; }
         public bool DiscourseTopicOpened { get; set; }
-        public string DiscourseTopicSlug { get; set; }
-        public string DiscourseThreadUrl { get { return string.Format("http://what.thedailywtf.com/t/{0}/{1}", this.DiscourseTopicSlug, this.DiscourseTopicId); } }
         public DateTime? PublishedDate { get; set; }
-        public string DisplayDate { get { return this.PublishedDate == null ? "(unpublished)" : this.PublishedDate.Value.ToShortDateString(); } }
+        public string ISODate { get { return this.PublishedDate == null ? "" : this.PublishedDate.Value.ToString("yyyy-MM-dd"); } }
+        public string DisplayDate { get { return this.PublishedDate == null ? "(unpublished)" : this.PublishedDate.Value.ToString("yyyy-MM-dd"); } }
         [Required]
         public SeriesModel Series { get; set; }
         [AllowHtml]
         public string FooterAdHtml { get; set; }
-        public string Url { get { return string.Format("http://{0}/articles/{1}", Config.Wtf.Host, this.Slug); } }
-        public string CommentsUrl { get { return string.Format("http://{0}/articles/comments/{1}", Config.Wtf.Host, this.Slug); } }
+        public string Url { get { return string.Format("https://{0}/articles/{1}", Config.Wtf.Host, this.Slug); } }
+        public string CommentsUrl { get { return string.Format("https://{0}/articles/comments/{1}", Config.Wtf.Host, this.Slug); } }
         public string Slug { get; set; }
-        public string TwitterUrl { get { return string.Format("//www.twitter.com/home?status=http:{0}+-+{1}+-+The+Daily+WTF", HttpUtility.UrlEncode(this.Url), HttpUtility.UrlEncode(this.Title)); } }
-        public string FacebookUrl { get { return string.Format("//www.facebook.com/sharer.php?u=http:{0}&t={1}+-+The+Daily+WTF", HttpUtility.UrlEncode(this.Url), HttpUtility.UrlEncode(this.Title)); } }
+        public string TwitterUrl { get { return string.Format("//www.twitter.com/home?status={0}+-+{1}+-+The+Daily+WTF", HttpUtility.UrlEncode(this.Url), HttpUtility.UrlEncode(this.Title)); } }
+        public string FacebookUrl { get { return string.Format("//www.facebook.com/sharer.php?u={0}&t={1}+-+The+Daily+WTF", HttpUtility.UrlEncode(this.Url), HttpUtility.UrlEncode(this.Title)); } }
         public string EmailUrl 
         { 
             get 
@@ -94,26 +91,37 @@ namespace TheDailyWtf.Models
 
         public static IEnumerable<ArticleModel> GetAllArticlesBySeries(string series)
         {
-            var articles = StoredProcs.Articles_GetArticles(series, Domains.PublishedStatus.Published, null, null).Execute();
+            var articles = DB.Articles_GetArticles(series, Domains.PublishedStatus.Published, null, null);
+            return articles.Select(a => ArticleModel.FromTable(a));
+        }
+
+        private static IEnumerable<ArticleModel> GetArticlesByMonth(DateTime month, string series = null, string author = null)
+        {
+            var monthStart = new DateTime(month.Year, month.Month, 1);
+            var articles = DB.Articles_GetArticles(
+                Series_Slug: series,
+                PublishedStatus_Name: Domains.PublishedStatus.Published,
+                RangeStart_Date: monthStart,
+                RangeEnd_Date: monthStart.AddMonths(1).AddSeconds(-1.0),
+                Author_Slug: author
+              );
+
             return articles.Select(a => ArticleModel.FromTable(a));
         }
 
         public static IEnumerable<ArticleModel> GetAllArticlesByMonth(DateTime month)
         {
-            return GetSeriesArticlesByMonth(null, month);
+            return GetArticlesByMonth(month);
         }
 
         public static IEnumerable<ArticleModel> GetSeriesArticlesByMonth(string series, DateTime month)
         {
-            var monthStart = new DateTime(month.Year, month.Month, 1);
-            var articles = StoredProcs.Articles_GetArticles(
-                series, 
-                Domains.PublishedStatus.Published, 
-                monthStart, 
-                monthStart.AddMonths(1).AddSeconds(-1.0)
-              ).Execute();
+            return GetArticlesByMonth(month, series: series);
+        }
 
-            return articles.Select(a => ArticleModel.FromTable(a));
+        public static IEnumerable<ArticleModel> GetAuthorArticlesByMonth(string author, DateTime month)
+        {
+            return GetArticlesByMonth(month, author: author);
         }
 
         public static IEnumerable<ArticleModel> GetRecentArticles()
@@ -123,19 +131,19 @@ namespace TheDailyWtf.Models
 
         public static IEnumerable<ArticleModel> GetRecentArticles(int count)
         {
-            var articles = StoredProcs.Articles_GetRecentArticles(Domains.PublishedStatus.Published, Article_Count: count).Execute();
+            var articles = DB.Articles_GetRecentArticles(Domains.PublishedStatus.Published, Article_Count: count);
             return articles.Select(a => ArticleModel.FromTable(a));
         }
 
-        public static IEnumerable<ArticleModel> GetRecentArticlesBySeries(string slug)
+        public static IEnumerable<ArticleModel> GetRecentArticlesBySeries(string slug, int? articleCount = 8)
         {
-            var articles = StoredProcs.Articles_GetRecentArticles(Domains.PublishedStatus.Published, Series_Slug: slug, Article_Count: 8).Execute();
+            var articles = DB.Articles_GetRecentArticles(Domains.PublishedStatus.Published, Series_Slug: slug, Article_Count: articleCount);
             return articles.Select(a => ArticleModel.FromTable(a));
         }
 
         public static IEnumerable<ArticleModel> GetRecentArticlesByAuthor(string slug, int? articleCount = 8)
         {
-            var articles = StoredProcs.Articles_GetRecentArticles(Domains.PublishedStatus.Published, Author_Slug: slug, Article_Count: articleCount).Execute();
+            var articles = DB.Articles_GetRecentArticles(Domains.PublishedStatus.Published, Author_Slug: slug, Article_Count: articleCount);
             return articles.Select(a => ArticleModel.FromTable(a));
         }
 
@@ -146,18 +154,18 @@ namespace TheDailyWtf.Models
 
         public static IEnumerable<ArticleModel> GetUnpublishedArticles(string authorSlug = null)
         {
-            var articles = StoredProcs.Articles_GetUnpublishedArticles(authorSlug).Execute();
+            var articles = DB.Articles_GetUnpublishedArticles(authorSlug);
             return articles.Select(a => ArticleModel.FromTable(a));
         }
 
-        public IEnumerable<CommentModel> GetFeaturedComments()
+        public IList<CommentModel> GetFeaturedComments()
         {
             return CommentModel.GetFeaturedCommentsForArticle(this);
         }
 
         public static ArticleModel GetArticleById(int id)
         {
-            var article = StoredProcs.Articles_GetArticleById(id).Execute();
+            var article = DB.Articles_GetArticleById(id);
             if (article == null)
                 return null;
             return ArticleModel.FromTable(article);
@@ -165,7 +173,7 @@ namespace TheDailyWtf.Models
 
         public static ArticleModel GetArticleBySlug(string slug)
         {
-            var article = StoredProcs.Articles_GetArticleBySlug(slug).Execute();
+            var article = DB.Articles_GetArticleBySlug(slug);
             if (article == null)
                 return null;
             return ArticleModel.FromTable(article);
@@ -173,37 +181,42 @@ namespace TheDailyWtf.Models
 
         public static ArticleModel GetArticleByLegacyPost(int postId)
         {
-            var article = StoredProcs.Articles_GetArticleByLegacyPost(postId).Execute();
+            var article = DB.Articles_GetArticleByLegacyPost(postId);
             if (article == null)
                 return null;
             return ArticleModel.FromTable(article);
         }
 
-        public static ArticleModel GetRandomArticle()
-        {
-            var article = StoredProcs.Articles_GetRandomArticle().Execute();
-            return ArticleModel.FromTable(article);
-        }
-
         public static ArticleModel FromTable(Tables.Articles_Extended article)
         {
-            var model = new ArticleModel()
+            // add microdata to take advantage of Google's rich snippets for articles:
+            // https://developers.google.com/structured-data/rich-snippets/articles
+            if (article.Body_Html.Contains("<img ") && !article.Body_Html.Contains(" itemprop=\"image\" "))
+            {
+                // only modify the first image
+                int index = article.Body_Html.IndexOf("<img ") + "<img ".Length;
+                article.Body_Html = article.Body_Html.Substring(0, index) + "itemprop=\"image\" " + article.Body_Html.Substring(index);
+                // assume the body+ad contains the entire body
+                index = article.BodyAndAd_Html.IndexOf("<img ") + "<img ".Length;
+                article.BodyAndAd_Html = article.BodyAndAd_Html.Substring(0, index) + "itemprop=\"image\" " + article.BodyAndAd_Html.Substring(index);
+            }
+
+            return new ArticleModel()
             {
                 Id = article.Article_Id,
                 Slug = article.Article_Slug,
                 Author = AuthorModel.FromTable(article),
-                BodyHtml = article.Body_Html,
-                BodyAndAdHtml = article.BodyAndAd_Html,
-                DiscourseCommentCount = (int)article.Cached_Comment_Count,
+                BodyHtml = HtmlCleaner.UnmixContent(article.Body_Html),
+                BodyAndAdHtml = HtmlCleaner.UnmixContent(article.BodyAndAd_Html),
                 CachedCommentCount = (int)article.Cached_Comment_Count,
                 DiscourseTopicId = article.Discourse_Topic_Id,
                 DiscourseTopicOpened = article.Discourse_Topic_Opened == "Y",
                 LastCommentDate = article.Last_Comment_Date,
                 PublishedDate = article.Published_Date,
                 Series = SeriesModel.FromTable(article),
-                FooterAdHtml = article.Ad_Html,
+                FooterAdHtml = HtmlCleaner.UnmixContent(article.Ad_Html),
                 Status = article.PublishedStatus_Name,
-                SummaryHtml = ArticleModel.ExtractSummary(article.Body_Html),
+                SummaryHtml = HtmlCleaner.UnmixContent(ArticleModel.ExtractSummary(article.Body_Html)),
                 Title = article.Title_Text,
                 PreviousArticleId = article.Previous_Article_Id,
                 PreviousArticleSlug = article.Previous_Article_Slug,
@@ -212,16 +225,6 @@ namespace TheDailyWtf.Models
                 NextArticleSlug = article.Next_Article_Slug,
                 NextArticleTitle = article.Next_Title_Text
             };
-
-            if (article.Discourse_Topic_Id != null)
-            {
-                var topic = DiscourseHelper.GetDiscussionTopic((int)article.Discourse_Topic_Id);
-                model.LastCommentDate = topic.LastPostedAt;
-                model.DiscourseCommentCount = topic.PostsCount;
-                model.DiscourseTopicSlug = topic.Slug;
-            }
-
-            return model;
         }
 
         private static string ExtractSummary(string articleText)
@@ -256,13 +259,7 @@ namespace TheDailyWtf.Models
 
             summary += (index == 0) ? articleText : articleText.Substring(0, index);
 
-            //Close Blockquotes
-            var quotMatches = Regexes.BlockQuoteStart.Matches(summary);
-            var quotClosMatches = Regexes.BlockQuoteEnd.Matches(summary);
-            for (int i = 0; i < quotMatches.Count - quotClosMatches.Count; i++)
-                summary += "</blockquote>";
-
-            return summary;
+            return HtmlCleaner.CloseTags(summary);
         }
 
         private static class Regexes

@@ -7,53 +7,45 @@ namespace TheDailyWtf.ViewModels
 {
     public class ArticlesIndexViewModel : WtfViewModelBase
     {
-        private static readonly HashSet<string> paginatedSeries 
-            = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "feature-articles", "code-sod", "errord" };
+        private readonly Lazy<IEnumerable<ArticleItemViewModel>> getArticles;
 
         public ArticlesIndexViewModel()
         {
             this.ReferenceDate = new DateInfo(DateTime.Now);
+
+            this.getArticles = new Lazy<IEnumerable<ArticleItemViewModel>>(() => ArticleModel.GetSeriesArticlesByMonth(this.Series?.Slug, this.ReferenceDate.Reference).Select(a => new ArticleItemViewModel(a)).ToList());
+        }
+
+        public ArticlesIndexViewModel(SeriesModel series, DateTime? reference = null)
+            : this()
+        {
+            this.Series = series;
+            this.ReferenceDate = new DateInfo(reference ?? ArticleModel.GetRecentArticlesBySeries(series.Slug, 1).FirstOrDefault()?.PublishedDate ?? DateTime.Now);
         }
 
         public DateInfo ReferenceDate { get; set; }
         public SeriesModel Series { get; set; }
-        public string SeriesDescription { get { return this.Series != null ? this.Series.Description : ""; } }
-        public bool PaginateArticleListByMonth { get { return this.Series == null || paginatedSeries.Contains(this.Series.Slug); } }
+        public string SeriesDescription => this.Series != null ? this.Series.Description : "";
         public string ListHeading 
         { 
             get 
             {
                 if (this.Series == null)
                     return "Recent Articles";
-                return string.Format("{0} {1}", this.PaginateArticleListByMonth ? "Recent" : "All", this.Series.Title);
+                return string.Format("{0} {1}", "Recent", this.Series.Title);
             } 
         }
-        public string PreviousMonthUrl { get { return this.FormatUrl(this.ReferenceDate.PrevMonth); } }
-        public string NextMonthUrl { get { return this.FormatUrl(this.ReferenceDate.NextMonth); } }
+        public string PreviousMonthUrl => this.FormatUrl(this.ReferenceDate.PrevMonth);
+        public string NextMonthUrl => this.FormatUrl(this.ReferenceDate.NextMonth);
 
-        public IEnumerable<ArticleItemViewModel> Articles
-        {
-            get
-            {
-                if (this.PaginateArticleListByMonth)
-                {
-                    return ArticleModel.GetSeriesArticlesByMonth(this.Series == null ? null : this.Series.Slug, this.ReferenceDate.Reference)
-                        .Select(a => new ArticleItemViewModel(a));
-                }
-                else
-                {
-                    return ArticleModel.GetAllArticlesBySeries(this.Series == null ? null : this.Series.Slug)
-                        .Select(a => new ArticleItemViewModel(a));
-                }
-            }
-        }
+        public IEnumerable<ArticleItemViewModel> Articles => this.getArticles.Value;
 
         private string FormatUrl(DateTime date)
         {
             if (this.Series == null)
-                return string.Format("/articles/{0}/{1}", date.Year, date.Month);
+                return $"/articles/{date.Year}/{date.Month}";
             else
-                return string.Format("/series/{0}/{1}/{2}", date.Year, date.Month, this.Series.Slug);
+                return $"/series/{date.Year}/{date.Month}/{this.Series.Slug}";
         }
 
         public sealed class DateInfo
@@ -65,14 +57,14 @@ namespace TheDailyWtf.ViewModels
                 this.PrevMonth = reference.AddMonths(-1);
             }
 
-            public DateTime Reference { get; private set; }
-            public DateTime NextMonth { get; private set; }
-            public DateTime PrevMonth { get; private set; }
+            public DateTime Reference { get; }
+            public DateTime NextMonth { get; }
+            public DateTime PrevMonth { get; }
 
-            public string CurrentMonthAndYear { get { return this.Reference.ToString("MMM yyyy"); } }
-            public string PreviousMonthAndYear { get { return this.PrevMonth.ToString("MMM yy"); } }
-            public string NextMonthAndYear { get { return this.NextMonth.ToString("MMM yy"); } }
-            public string NextMonthCssClass { get { return this.NextMonth > DateTime.Now ? "disable" : ""; } }
+            public string CurrentMonthAndYear => this.Reference.ToString("MMM yyyy");
+            public string PreviousMonthAndYear => this.PrevMonth.ToString("MMM yy");
+            public string NextMonthAndYear => this.NextMonth.ToString("MMM yy");
+            public string NextMonthCssClass => this.NextMonth > DateTime.Now ? "disable" : "";
         }
     }
 }
